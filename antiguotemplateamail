@@ -1,0 +1,71 @@
+function afterFormSubmit(e) {
+  
+  const info = e.namedValues;
+  const PDFfile = createPDF(info);
+  const entryRow = e.range.getRow();
+  const ws = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Registro Servicio Social").getRange(entryRow, 23).setValue(PDFfile.getUrl());
+
+
+  
+  sendEmail(e.namedValues['Correo Institucional'][0],PDFfile);
+}
+
+
+
+function sendEmail(email,PDFfile){
+  GmailApp.sendEmail(email, "Bienvenida Servicio Social", "Hola! Es un gusto saludarte. Antes que nada, te doy la más cordial de las bienvenidas a la familia Violines Por la Paz A.C. Agradecemos tu preferencia y estamos muy entusiasmados de poder trabajar juntos este semestre. Recuerda que deberás unirte a la brevedad al grupo de Whatsapp https://chat.whatsapp.com/DqDKsa2NsBqHISssLpbTts", {
+    attachments: [PDFfile],
+    name: 'Violines Por la Paz A.C. | Servicio Social'
+  
+  
+  });
+  
+  
+}
+
+
+
+
+
+function createPDF(info){
+
+
+
+const pdfFolder = DriveApp.getFolderById("1y8RMqWQQ8mKgNcMQPfA3ZjyJEZNCisTK");
+const tempFolder = DriveApp.getFolderById("1gI3bv27OiBfzyEBV8x4l-6fUKYHz7oyz");
+
+
+//const templateDoc = DriveApp.getFileById("1TyYFAxRQ9w-2nFq-3LKfiKpMw_mEsfpzIAhrPpg5Fjs");
+const templateSlide = DriveApp.getFileById("1zcsHJZAzTUZpqUkKWU7hl8PSRAuZ35-H3H7QJMiaijc");
+//const newTempFile = templateDoc.makeCopy(tempFolder);
+const newTempSlide = templateSlide.makeCopy(tempFolder);
+//const openDoc = DocumentApp.openById(newTempFile.getId());
+//const deck = SlidesApp.openById(newTempSlide.getId());
+
+
+//const body = openDoc.getBody();
+const slides = newTempSlide.getSlides();
+const accSlide = slides[0];
+const shapes = accSlide.getShapes;
+shapes.forEach(function(shape){
+//body.replaceText("{Mes}", info['Mes'][0]);
+shape.getText.replaceAllText("{Mes}", info['Mes'][0]);
+//body.replaceText("{Ano}", info['Ano'][0]);
+shape.getText.replaceText("{Ano}", info['Ano'][0]);
+//body.replaceText("{Departamento}", info['Departamento'][0]);  
+shape.getText.replaceText("{Departamento}", info['Departamento'][0]);  
+//body.replaceText("{Nombre}", info['Nombre'][0]);  
+shape.getText.replaceText("{Nombre}", info['Nombre'][0]);  })
+  //openDoc.saveAndClose();
+openSlide.saveAndClose();
+  
+  
+  
+const blobPDF = newTempFile.getAs(MimeType.PDF);
+const PDFfile = pdfFolder.createFile(blobPDF).setName(info['Nombre'][0] + " Bienvenida " +  info['Mes'][0] + " " + +info['Ano'][0]);
+  tempFolder.removeFile(newTempFile);
+  
+  return PDFfile
+
+
+}
