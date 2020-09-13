@@ -1,0 +1,49 @@
+function formsSubmit(e) {
+  const info = e.namedValues; // saves the text in the fields of the form
+  const PDF = fillTemplate(info);
+  sendEmail(e.namedValues['Dirección de correo electrónico'][0],PDF);
+}
+
+function sendEmail(email, file){
+  
+  GmailApp.sendEmail(email, "¡Bienvenido a Violines Por La Paz!", "El PDF está adjunto", {
+    attachments: [file],
+    name: 'Violines por la Paz A.C.'
+  });
+}
+
+function fillTemplate(info) {
+  // saves files and folders as variables
+  const pdfFolder = DriveApp.getFolderById("1vvGrgc0kO6mZJaFms2sjQRVEzfWbhZ40");
+  const tempFolder = DriveApp.getFolderById("1Q0iAiafdbxca75hdKXJbRfgiwJQjJ1L9");
+  const template = DriveApp.getFileById("1TVXO09kqv85T0_NNJgNYQOebJNo_FthYYDUbRsre_bk");
+ 
+  const tempSlides = template.makeCopy(tempFolder); // create a temporal copy of the slides
+  
+  const openedSlides = SlidesApp.openById(tempSlides.getId());
+  var slides = openedSlides.getSlides();
+  var templateSlide = slides[0];
+  
+  var apellidoN = info['Apellidos del niño'][0].trim();
+  var nombreN = info['Nombre(s) del niño'][0].trim();
+  var apellido = info['Apellidos del tutor'][0].trim();
+  var nombre = info['Nombre(s) del tutor'][0].trim();
+  var escuela = info['Escuela'][0].trim();
+  var celular = info['Teléfono de emergencia'][0].trim();
+  
+  var shapes = (templateSlide.getShapes()); // the shapes in the slide are saved as an array
+  shapes.forEach(function(shape) { // to loop through the array
+    shape.getText().replaceAllText("{apellidoN}", apellidoN);
+    shape.getText().replaceAllText("{nombreN}", nombreN);
+    shape.getText().replaceAllText("{apellido}", apellido);
+    shape.getText().replaceAllText("{nombre}", nombre);
+    shape.getText().replaceAllText("{escuela}", escuela);
+    shape.getText().replaceAllText("{celular}", celular);
+  })
+  openedSlides.saveAndClose();
+  
+  const blobPDF = tempSlides.getAs(MimeType.PDF);
+  const filledTemplate = pdfFolder.createFile(blobPDF).setName("Bienvenida" + " " + info['Nombre(s) del niño'][0] + " " +  info['Apellidos del niño'] + ".pdf");
+//  tempFolder.removeFile(tempSlides);
+  return filledTemplate;
+}
